@@ -1,0 +1,81 @@
+name: Reusable Deploy Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      namespace:
+        required: true
+        type: string
+      overlay_path:
+        required: true
+        type: string
+      kubeconfig_secret:
+        required: true
+        type: string
+      image_tag:
+        required: true
+        type: string
+    secrets:
+      KUBECONFIG:
+        required: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > /tmp/kubeconfig
+          echo "KUBECONFIG=/tmp/kubeconfig" >> $GITHUB_ENV
+
+      - name: Verify cluster access
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Install Kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Update image tag in overlay
+        run: |
+          cd ${{ inputs.overlay_path }}
+          kustomize edit set image backend=${{ inputs.image_tag }}
+          kustomize edit set image frontend=${{ inputs.image_tag }}
+        continue-on-error: true
+
+      - name: Deploy to ${{ inputs.environment }}
+        run: |
+          cd ${{ inputs.overlay_path }}
+          kustomize build . | kubectl apply -f -
+          kubectl rollout status deployment/backend-api -n ${{ inputs.namespace }} --timeout=300s
+          kubectl rollout status deployment/frontend-web -n ${{ inputs.namespace }} --timeout=300s
+
+      - name: Verify deployment
+        run: |
+          echo "### Deployment Status - ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pods:**" >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -n ${{ inputs.namespace }} >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Services:**" >> $GITHUB_STEP_SUMMARY
+          kubectl get svc -n ${{ inputs.namespace }} >> $GITHUB_STEP_SUMMARY
+
+      - name: Test backend health
+        run: |
+          BACKEND_POD=$(kubectl get pod -n ${{ inputs.namespace }} -l app=backend-api -o jsonpath='{.items[0].metadata.name}')
+          kubectl exec -n ${{ inputs.namespace }} $BACKEND_POD -c backend -- curl -s http://localhost:8080/health
+                  

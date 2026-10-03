@@ -1,0 +1,70 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: dev
+
+resources:
+  - ../../base
+
+patches:
+  # Reduce replicas for dev
+  - target:
+      kind: Deployment
+      name: backend-api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Single frontend replica
+  - target:
+      kind: Deployment
+      name: frontend-web
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+  # Inject dev backend ClusterIP into nginx config
+  - target:
+      kind: ConfigMap
+      name: frontend-config
+    patch: |-
+      - op: replace
+        path: /data/nginx.conf
+        value: |
+          server {
+              listen 8080;
+              root /usr/share/nginx/html;
+              index index.html;
+
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+
+              location /api/ {
+                  proxy_pass http://DEV_BACKEND_CLUSTER_IP:8080;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host backend-api.backend.svc.cluster.local;
+              }
+
+              location /health {
+                  return 200 "healthy\n";
+                  add_header Content-Type text/plain;
+              }
+          }
+
+  # Relax resource limits for dev
+  - target:
+      kind: Deployment
+      name: backend-api
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: "128Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "256Mi"
+
+commonLabels:
+  environment: dev

@@ -1,0 +1,31 @@
+{{- if .Values.destinationRules.backend }}
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: backend-api
+  namespace: {{ .Values.namespace }}
+spec:
+  host: backend-api
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    connectionPool:
+      tcp:
+        maxConnections: {{ .Values.destinationRules.backend.connectionPool.tcp.maxConnections }}
+      http:
+        http1MaxPendingRequests: {{ .Values.destinationRules.backend.connectionPool.http.http1MaxPendingRequests }}
+        http2MaxRequests: {{ .Values.destinationRules.backend.connectionPool.http.http2MaxRequests }}
+    outlierDetection:
+      consecutive5xxErrors: {{ .Values.destinationRules.backend.outlierDetection.consecutive5xxErrors }}
+      interval: {{ .Values.destinationRules.backend.outlierDetection.interval }}
+      baseEjectionTime: {{ .Values.destinationRules.backend.outlierDetection.baseEjectionTime }}
+  {{- if .Values.backend.canary.enabled }}
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+  {{- end }}
+{{- end }}

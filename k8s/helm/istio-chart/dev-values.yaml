@@ -1,0 +1,36 @@
+namespace: dev
+
+gateway:
+  hosts:
+    - "*.dev.example.com"
+
+frontend:
+  hosts:
+    - "frontend.dev.example.com"
+  timeout: 5s
+  retries:
+    attempts: 1
+    perTryTimeout: 3s
+
+backend:
+  timeout: 5s
+  retries:
+    attempts: 1
+    perTryTimeout: 3s
+
+authorization:
+  mtls:
+    mode: PERMISSIVE
+  allowedPrincipals:
+    - "cluster.local/ns/dev/sa/default"
+    - "cluster.local/ns/frontend/sa/default"
+
+destinationRules:
+  backend:
+    connectionPool:
+      tcp:
+        maxConnections: 10
+      http:
+        http1MaxPendingRequests: 10
+    outlierDetection:
+      consecutive5xxErrors: 10

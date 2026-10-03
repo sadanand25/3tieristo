@@ -1,0 +1,64 @@
+{{- if .Values.frontend.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: frontend-vs
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+    {{- toYaml .Values.frontend.hosts | nindent 4 }}
+  gateways:
+    - {{ .Values.frontend.gateway }}
+  http:
+    - route:
+        - destination:
+            host: frontend-web
+            port:
+              number: 80
+      timeout: {{ .Values.frontend.timeout }}
+      retries:
+        attempts: {{ .Values.frontend.retries.attempts }}
+        perTryTimeout: {{ .Values.frontend.retries.perTryTimeout }}
+        retryOn: {{ .Values.frontend.retries.retryOn }}
+{{- end }}
+---
+{{- if .Values.backend.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: backend-vs
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+    {{- toYaml .Values.backend.hosts | nindent 4 }}
+  http:
+    {{- if .Values.backend.canary.enabled }}
+    - match:
+        - headers:
+            x-canary:
+              exact: "true"
+      route:
+        - destination:
+            host: backend-api
+            subset: v2
+    {{- end }}
+    - route:
+        {{- if .Values.backend.canary.enabled }}
+        - destination:
+            host: backend-api
+            subset: v1
+          weight: {{ .Values.backend.canary.v1Weight }}
+        - destination:
+            host: backend-api
+            subset: v2
+          weight: {{ .Values.backend.canary.v2Weight }}
+        {{- else }}
+        - destination:
+            host: backend-api
+        {{- end }}
+      timeout: {{ .Values.backend.timeout }}
+      retries:
+        attempts: {{ .Values.backend.retries.attempts }}
+        perTryTimeout: {{ .Values.backend.retries.perTryTimeout }}
+        retryOn: {{ .Values.backend.retries.retryOn }}
+{{- end }}

@@ -1,0 +1,21 @@
+name: Deploy to Development
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Push Images"]
+    types: [completed]
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  deploy-dev:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/reusable-deploy.yaml
+    with:
+      environment: dev
+      namespace: dev
+      overlay_path: ./k8s/overlays/dev
+      kubeconfig_secret: KUBECONFIG_DEV
+      image_tag: ${{ github.event.workflow_run.head_sha || github.sha }}
+    secrets:
+      KUBECONFIG: ${{ secrets.KUBECONFIG_DEV }}

@@ -1,0 +1,21 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: backend-api-pdb
+  namespace: dev
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      app: backend-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend-web-pdb
+  namespace: dev
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: frontend-web
