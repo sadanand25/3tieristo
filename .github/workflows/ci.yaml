@@ -39,8 +39,8 @@ jobs:
 
       - name: Check secrets are visible
         run: |
-              echo "user length: ${#DOCKERHUB_USERNAME}"
-              echo "token length: ${#DOCKERHUB_TOKEN}"
+              echo "user length: ${DOCKERHUB_USERNAME}"
+              echo "token length: ${DOCKERHUB_TOKEN}"
         env:
               DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
               DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
