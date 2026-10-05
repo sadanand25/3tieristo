@@ -34,7 +34,17 @@ jobs:
         uses: azure/setup-kubectl@v4
         with:
           version: 'v1.29.0'
-
+      - name: Checkout code with full history
+        uses: actions/checkout@v3
+        with:
+         token: ${{ secrets.GITHUB_TOKEN }}
+         fetch-depth: 0  # Fetch all history to get latest changes
+         ref: ${{ github.head_ref || github.ref_name }}  # Check out the correct branch
+    
+      - name: Pull latest changes (for PRs)
+        if: github.event_name == 'pull_request'
+        run: |
+           git pull origin ${{ github.head_ref }}
       - name: Configure kubeconfig
         run: |
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > /tmp/kubeconfig
