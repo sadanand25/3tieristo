@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Tier Application</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
+        .container { background: white; border-radius: 20px; padding: 40px; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { color: #333; }
+        button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1em; margin: 5px; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>3-Tier Application</h1>
+        <p>Kubernetes + Istio Service Mesh</p>
+        <button onclick="testHealth()">Health Check</button>
+        <button onclick="testUsers()">Get Users</button>
+        <button onclick="testProducts()">Get Products</button>
+        <pre id="output">Ready.</pre>
+    </div>
+    <script>
+        const out = document.getElementById('output');
+        async function call(path, label) {
+            out.textContent = `Testing ${label}...`;
+            try {
+                const r = await fetch(path);
+                const text = await r.text();
+                out.textContent = `[${r.status}] ${label}\n\n${text}`;
+            } catch (e) {
+                out.textContent = `ERROR: ${e.message}`;
+            }
+        }
+        function testHealth()   { call('/api/health',   'Health'); }
+        function testUsers()    { call('/api/users',    'Users'); }
+        function testProducts() { call('/api/products', 'Products'); }
+    </script>
+</body>
+</html>
