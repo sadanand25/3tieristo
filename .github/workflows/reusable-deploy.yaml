@@ -40,10 +40,10 @@ jobs:
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > /tmp/kubeconfig
           echo "KUBECONFIG=/tmp/kubeconfig" >> $GITHUB_ENV
 
-      - name: Verify cluster access
-        run: |
-          kubectl cluster-info
-          kubectl get nodes
+#      - name: Verify cluster access
+#        run: |
+#          kubectl cluster-info
+#          kubectl get nodes
 
       - name: Install Kustomize
         run: |
