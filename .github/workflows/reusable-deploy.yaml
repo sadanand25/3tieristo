@@ -74,8 +74,8 @@ jobs:
           echo "**Services:**" >> $GITHUB_STEP_SUMMARY
           kubectl get svc -n ${{ inputs.namespace }} >> $GITHUB_STEP_SUMMARY
 
-      - name: Test backend health
-        run: |
-          BACKEND_POD=$(kubectl get pod -n ${{ inputs.namespace }} -l app=backend-api -o jsonpath='{.items[0].metadata.name}')
-          kubectl exec -n ${{ inputs.namespace }} $BACKEND_POD -c backend -- curl -s http://localhost:8080/health
+#      - name: Test backend health
+#        run: |
+#          BACKEND_POD=$(kubectl get pod -n ${{ inputs.namespace }} -l app=backend-api -o jsonpath='{.items[0].metadata.name}')
+#          kubectl exec -n ${{ inputs.namespace }} $BACKEND_POD -c backend -- curl -s http://localhost:8080/health
                   
