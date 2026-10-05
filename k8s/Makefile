@@ -1,7 +1,7 @@
 .PHONY: deploy-dev clean
 
 # ClusterIPs (update these after deploying databases)
-DEV_BACKEND_IP ?= 10.107.1.1
+DEV_BACKEND_IP ?= 10.244.50.86
 
 
 # Deploy databases first (they're shared or per-env)
