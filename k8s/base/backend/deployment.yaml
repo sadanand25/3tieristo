@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: node:18-alpine
+          image: sadanand25/backend:latest
           command:
             - sh
             - -c
