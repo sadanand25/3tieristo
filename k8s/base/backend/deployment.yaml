@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: sadanand25/backend:latest
+          image: docker.io/sadanand25/backend:latest
           command:
             - sh
             - -c

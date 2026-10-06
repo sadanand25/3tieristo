@@ -47,7 +47,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: sadanand25/frontend:latest
+          image: docker.io/sadanand25/frontend:latest
           ports:
             - containerPort: 8080
           resources:
