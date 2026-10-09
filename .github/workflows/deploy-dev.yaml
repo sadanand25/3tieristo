@@ -18,4 +18,4 @@ jobs:
       kubeconfig_secret: KUBECONFIG_DEV
       image_tag: ${{ github.event.workflow_run.head_sha || github.sha }}
     secrets:
-      KUBECONFIG: ${{ secrets.KUBECONFIG_DEV }}
+       KUBECONFIG: ${{ secrets.KUBECONFIG_DEV }}
